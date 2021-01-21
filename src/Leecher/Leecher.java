@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class Leecher {
     public static ArrayList<SeederDTO> seeders = new ArrayList<>();
@@ -43,8 +44,16 @@ public class Leecher {
         if (fileSelected.exists()) {
             TorrentDTO object = GetFileObject(fileName);
             TotalPieces = object.getPieces();
-            for (int i = 0; i < object.getPieces(); i++) {
-                file.add(new byte[102400]);
+            for (int i = 0; i < TotalPieces; i++) {
+                if (i < TotalPieces - 1) {
+                    file.add(new byte[102400]);
+                } else {
+                    if (object.getLastPiece() > 0) {
+                        file.add(new byte[object.getLastPiece()]);
+                    } else {
+                        file.add(new byte[102400]);
+                    }
+                }
             }
             String finalFileName = object.getFileName() + "." + object.getFileExtension();
             new SeedersList(object.getTrackerIp(), object.getTrackerPort(), object.getId());
@@ -63,6 +72,9 @@ public class Leecher {
                     i++;
                 }
             }
+            while (DownloadedPieces < TotalPieces) {
+                TimeUnit.SECONDS.sleep(1);
+            }
             //Aqui termina
             connections.forEach(SocketConnection::close);
             GenerateFile(file, finalFileName);
@@ -77,42 +89,36 @@ public class Leecher {
         FileInputStream fileIn = null;
         try {
             fileIn = new FileInputStream("torrents/" + fileName);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException ignored) {
         }
         ObjectInputStream objectIn = null;
         try {
             objectIn = new ObjectInputStream(fileIn);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
         try {
             assert objectIn != null;
             object = (TorrentDTO) objectIn.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (IOException | ClassNotFoundException ignored) {
         }
         try {
             objectIn.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
         return object;
     }
 
     public void GenerateFile(ArrayList<byte[]> file, String fileName) throws IOException {
-        OutputStream objectOut = new FileOutputStream("downloads/" + fileName);
+        OutputStream objectOut = new FileOutputStream("files/" + fileName);
         file.forEach(f -> {
             try {
                 objectOut.write(f);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignored) {
             }
         });
         try {
             objectOut.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
     }
 }

@@ -17,7 +17,6 @@ public class TorrentDTO implements Serializable {
     public TorrentDTO(String fileName) throws IOException {
         int pieceSize = 102400;
         double FileSize = 0;
-        int lastPiece = 0;
         id = UUID.randomUUID().toString();
         String[] fileProp = fileName.split("\\.");
         this.fileName = fileProp[0];
@@ -39,7 +38,6 @@ public class TorrentDTO implements Serializable {
                 data = new byte[lastPiece];
                 InputStream.read(data, 0, lastPiece);
             }
-            checkSum.add(data);
         }
         InputStream.close();
     }

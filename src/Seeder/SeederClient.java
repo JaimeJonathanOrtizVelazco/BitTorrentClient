@@ -31,7 +31,7 @@ public class SeederClient extends Thread {
         connection.close();
     }
 
-    public ArrayList<byte[]> PrepareFile(String fileName) throws IOException {
+    private ArrayList<byte[]> PrepareFile(String fileName) throws IOException {
         ArrayList<byte[]> fileArray = new ArrayList<>();
         int pieceSize = 102400;
         double FileSize = 0;
@@ -44,8 +44,7 @@ public class SeederClient extends Thread {
         if (pieces * pieceSize > FileSize) {
             lastPiece = (int) (FileSize - ((pieces - 1) * pieceSize));
         }
-        InputStream InputStream = null;
-        InputStream = new FileInputStream(Path);
+        InputStream InputStream = new FileInputStream(Path);
         byte[] data;
         for (int i = 0; i < pieces; i++) {
             if (i < pieces - 1) {

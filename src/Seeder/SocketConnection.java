@@ -91,8 +91,8 @@ public class SocketConnection {
             return this.ObjectInput.readObject();
         } catch (IOException | ClassNotFoundException ignored) {
             close();
+            return null;
         }
-        return null;
     }
 
     public String ReceiveInput() {
@@ -100,8 +100,8 @@ public class SocketConnection {
             return this.DataInput.readUTF();
         } catch (IOException ignored) {
             close();
+            return null;
         }
-        return null;
     }
 
     public int ReceiveInputInt() {
@@ -109,14 +109,14 @@ public class SocketConnection {
             return this.DataInput.readInt();
         } catch (IOException ignored) {
             close();
+            return 0;
         }
-        return 0;
     }
 
     public void close() {
         try {
             this.socket.close();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
     }
 }
