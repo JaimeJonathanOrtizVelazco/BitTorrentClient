@@ -13,17 +13,30 @@ public class SeederClient extends Thread {
 
     @Override
     public void run() {
-        String fileName=connection.ReceiveInput();
-        PrepareFile(fileName).forEach(p->{
-            connection.SendObject(p);
-        });
+        while (connection.Status() && !Seeder.endMut) {
+            String fileName = connection.ReceiveInput();
+            ArrayList<byte[]> fileInBytes = null;
+            try {
+                fileInBytes = PrepareFile(fileName);
+            } catch (IOException e) {
+                System.out.println("Error al recuperar el archivo");
+                break;
+            }
+            int piece = 0;
+            while (connection.Status() && !Seeder.endMut) {
+                piece = connection.ReceiveInputInt();
+                connection.SendObject(fileInBytes.get(piece));
+            }
+        }
+        connection.close();
     }
-    public ArrayList<byte[]> PrepareFile(String fileName){
-        ArrayList<byte[]> fileArray= new ArrayList<>();
+
+    public ArrayList<byte[]> PrepareFile(String fileName) throws IOException {
+        ArrayList<byte[]> fileArray = new ArrayList<>();
         int pieceSize = 102400;
-        double FileSize=0;
-        int pieces=0;
-        int lastPiece=0;
+        double FileSize = 0;
+        int pieces = 0;
+        int lastPiece = 0;
         String Path = "files/" + fileName;
         File file = new File(Path);
         FileSize = file.length();
@@ -32,35 +45,19 @@ public class SeederClient extends Thread {
             lastPiece = (int) (FileSize - ((pieces - 1) * pieceSize));
         }
         InputStream InputStream = null;
-        try {
-            InputStream = new FileInputStream(Path);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        InputStream = new FileInputStream(Path);
         byte[] data;
         for (int i = 0; i < pieces; i++) {
             if (i < pieces - 1) {
                 data = new byte[pieceSize];
-                try {
-                    InputStream.read(data, 0, pieceSize);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                InputStream.read(data, 0, pieceSize);
             } else {
                 data = new byte[lastPiece];
-                try {
-                    InputStream.read(data, 0, lastPiece);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                InputStream.read(data, 0, lastPiece);
             }
             fileArray.add(data);
         }
-        try {
-            InputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        InputStream.close();
         return fileArray;
     }
 }

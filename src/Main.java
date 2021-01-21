@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         int option = 0;
         int loop = 0;
         Scanner scanner = new Scanner(System.in);
@@ -24,7 +24,7 @@ public class Main {
                 case 2 -> {
                     System.out.println("Ingresa la IP del tracker al que te deseas conectar");
                     String trackerIp= scanner.nextLine();
-                    SeederClient peer= new SeederClient(trackerIp);
+                    SeederMenu peer= new SeederMenu(trackerIp);
                     peer.Connect();
                 }
                 case 3 -> loop = 1;

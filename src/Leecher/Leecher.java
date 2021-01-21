@@ -7,11 +7,21 @@ import Torrent.TorrentDTO;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Leecher {
-    public void Connect() throws IOException {
+    public static ArrayList<SeederDTO> seeders = new ArrayList<>();
+    public static ArrayList<SocketConnection> connections = new ArrayList<>();
+    public static ArrayList<byte[]> file = new ArrayList<>();
+
+    public Leecher() {
+        seeders.clear();
+        connections.clear();
+        file.clear();
+    }
+
+    public void Connect() throws IOException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
         String fileName;
         File directory = new File("torrents/");
@@ -28,19 +38,29 @@ public class Leecher {
         File fileSelected = new File("torrents/" + fileName);
         if (fileSelected.exists()) {
             TorrentDTO object = GetFileObject(fileName);
-            fileName = object.getFileName() + "." + object.getFileExtension();
-            ArrayList<SocketConnection> connections = new ArrayList<>();
-            GetSeedersList(object).forEach(s -> {
-                SocketConnection socketConnection = new SocketConnection(s.seederIP, s.port);
-                connections.add(socketConnection);
-            });
-            connections.get(0).SendInput(fileName);
-            ArrayList<byte[]> file = new ArrayList<>();
-            for (int i = 0; i < object.getPieces(); i++) {
-                file.add((byte[]) connections.get(0).ReceiveObject());
+            for (int i=0;i<object.getPieces();i++){
+                file.add(new byte[102400]);
             }
-            connections.get(0).close();
-            GenerateFile(file, fileName);
+            String finalFileName = object.getFileName() + "." + object.getFileExtension();
+            new SeedersList(object.getTrackerIp(), object.getTrackerPort(), object.getId());
+            connections.forEach(c -> {
+                c.SendInput(finalFileName);
+            });
+            //Aqui me quede para iniciar
+            int i = 0;
+            GetPieces piece;
+            while (i < object.getPieces()) {
+                Optional<SocketConnection> connection = connections.stream().filter(x -> !x.Working).findFirst();
+                if (connection.isPresent()) {
+                    connection.get().Working=true;
+                    piece = new GetPieces(connection.get(), i);
+                    piece.start();
+                    i++;
+                }
+            }
+            //Aqui termina
+            connections.forEach(SocketConnection::close);
+            GenerateFile(file, finalFileName);
             System.out.println("El archivo se descargo y creo");
         } else {
             System.out.println("Selecciona un nombre de archivo que este dentro de la lista");
@@ -73,14 +93,6 @@ public class Leecher {
             e.printStackTrace();
         }
         return object;
-    }
-
-    public ArrayList<SeederDTO> GetSeedersList(TorrentDTO object) {
-        ArrayList<SeederDTO> seederList = new ArrayList<>();
-        SocketConnection connection = new SocketConnection(object.getTrackerIp(), object.getTrackerPort());
-        connection.SendInput(object.getId());
-        seederList = (ArrayList<SeederDTO>) connection.ReceiveObject();
-        return seederList;
     }
 
     public void GenerateFile(ArrayList<byte[]> file, String fileName) throws IOException {
