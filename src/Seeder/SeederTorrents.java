@@ -20,7 +20,6 @@ public class SeederTorrents {
             e.printStackTrace();
         }
         assert address != null;
-        SeederDTO seederDTO = new SeederDTO(address.getHostAddress(), 4202);
         File directory = new File("torrents/");
         String[] files = directory.list();
         if (files == null) {
@@ -33,7 +32,7 @@ public class SeederTorrents {
                     TorrentDTO torrentObject = (TorrentDTO) objectIn.readObject();
                     objectIn.close();
                     if (torrentObject.getTrackerIp().equals(trackerIP)) {
-                        SeederTorrentDTO seeder = new SeederTorrentDTO(torrentObject.getId(), seederDTO);
+                        SeederTorrentDTO seeder = new SeederTorrentDTO(torrentObject.getId());
                         this.Torrents.add(seeder);
                     }
                 } catch (Exception ex) {

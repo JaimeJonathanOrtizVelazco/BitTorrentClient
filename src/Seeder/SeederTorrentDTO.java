@@ -10,9 +10,8 @@ public class SeederTorrentDTO implements Serializable {
     public SeederTorrentDTO() {
     }
 
-    public SeederTorrentDTO(String id, SeederDTO seeders) {
+    public SeederTorrentDTO(String id) {
         this.id = id;
-        this.seeders.add(seeders);
     }
 
     public String getId() {
