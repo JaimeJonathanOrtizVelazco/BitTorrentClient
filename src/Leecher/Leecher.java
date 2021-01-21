@@ -14,8 +14,12 @@ public class Leecher {
     public static ArrayList<SeederDTO> seeders = new ArrayList<>();
     public static ArrayList<SocketConnection> connections = new ArrayList<>();
     public static ArrayList<byte[]> file = new ArrayList<>();
+    public static int TotalPieces = 0;
+    public static int DownloadedPieces = 0;
 
     public Leecher() {
+        DownloadedPieces = 0;
+        TotalPieces = 0;
         seeders.clear();
         connections.clear();
         file.clear();
@@ -38,7 +42,8 @@ public class Leecher {
         File fileSelected = new File("torrents/" + fileName);
         if (fileSelected.exists()) {
             TorrentDTO object = GetFileObject(fileName);
-            for (int i=0;i<object.getPieces();i++){
+            TotalPieces = object.getPieces();
+            for (int i = 0; i < object.getPieces(); i++) {
                 file.add(new byte[102400]);
             }
             String finalFileName = object.getFileName() + "." + object.getFileExtension();
@@ -52,7 +57,7 @@ public class Leecher {
             while (i < object.getPieces()) {
                 Optional<SocketConnection> connection = connections.stream().filter(x -> !x.Working).findFirst();
                 if (connection.isPresent()) {
-                    connection.get().Working=true;
+                    connection.get().Working = true;
                     piece = new GetPieces(connection.get(), i);
                     piece.start();
                     i++;
@@ -61,7 +66,7 @@ public class Leecher {
             //Aqui termina
             connections.forEach(SocketConnection::close);
             GenerateFile(file, finalFileName);
-            System.out.println("El archivo se descargo y creo");
+            System.out.println("\t (finalizado)");
         } else {
             System.out.println("Selecciona un nombre de archivo que este dentro de la lista");
         }

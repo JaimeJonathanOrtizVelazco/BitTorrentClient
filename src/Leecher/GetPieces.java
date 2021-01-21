@@ -15,6 +15,9 @@ public class GetPieces extends Thread {
     public void run() {
         connection.SendInputInt(piece);
         Leecher.file.set(piece, (byte[]) connection.ReceiveObject());
+        Leecher.DownloadedPieces++;
+        double percent = (double) (Leecher.DownloadedPieces * 100) / Leecher.TotalPieces;
+        System.out.printf("\rDescargado: %.2f %%", percent);
         connection.Working = false;
     }
 }
