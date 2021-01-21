@@ -8,8 +8,9 @@ public class Seeder extends Thread {
     private final ServerSocket server;
     private final SeederStatusProvider provider;
     public static boolean endMut;
+
     public Seeder(String trackerIP) throws IOException {
-        endMut=false;
+        endMut = false;
         provider = new SeederStatusProvider(trackerIP);
         server = new ServerSocket(4202);
     }
@@ -20,6 +21,7 @@ public class Seeder extends Thread {
         while (true) {
             try {
                 Socket socket = server.accept();
+                System.out.println("El leecher " + socket.getInetAddress().getHostAddress() + " se ha conectado para descargar");
                 new SeederClient(socket).start();
             } catch (Exception ex) {
                 break;
@@ -28,7 +30,7 @@ public class Seeder extends Thread {
     }
 
     public void end() throws IOException {
-        endMut=true;
+        endMut = true;
         provider.end();
         server.close();
     }
